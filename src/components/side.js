@@ -38,7 +38,7 @@ export class side extends Component {
             activeClassName="active3"
             // className="porpssidebar"
             // exact={true}
-            to="/"
+            to="/dashbord"
           >
             <div>
               <a href="#" className="nav_logo">
@@ -75,7 +75,7 @@ export class side extends Component {
               </a>
             </div>{" "}
           </NavLink>
-          <div>
+          {/* <div>
             {" "}
             <a href="#" className="nav_logo">
               <Coupon />
@@ -88,14 +88,14 @@ export class side extends Component {
               <YourSvg />
               <i className="fas fa-angry"></i>{" "}
             </a>
-          </div>{" "}
-          <div>
+          </div>{" "} */}
+          {/* <div>
             {" "}
             <a href="#" className="nav_logo">
               <Seettings />
               <i className="fas fa-angry"></i>{" "}
             </a>
-          </div>
+          </div> */}
         </nav>
       </div>
     );

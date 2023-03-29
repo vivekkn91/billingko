@@ -3,6 +3,7 @@ import { ReactComponent as SEARCH } from "../Icons/SEARCH.svg";
 
 import axios from "axios";
 import Tabs from "./tabs";
+const { BrowserWindow } = require("electron");
 import SendIcon from "@mui/icons-material/Send";
 import Panel from "./panel";
 // import Cart from "./cart";
@@ -11,7 +12,7 @@ import Button from "@mui/material/Button";
 
 import { useState, useEffect } from "react";
 
-export default function PageOne() {
+export default function PageOne({ selectedCategory }) {
   const [items, setItems] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState(null);
@@ -21,17 +22,23 @@ export default function PageOne() {
   useEffect(() => {
     async function fetchItems() {
       try {
-        const response = await axios.get("http://localhost:3001/inventories");
+        let response;
+        if (selectedCategory) {
+          response = await axios.get(
+            `http://localhost:3001/categories/${selectedCategory}`
+          );
+        } else {
+          response = await axios.get("http://localhost:3001/inventories");
+        }
         console.log(response.data);
         setItems(response.data);
-        // setItems(response.data);
       } catch (error) {
         setError(error);
       }
     }
 
     fetchItems();
-  }, []);
+  }, [selectedCategory]);
   console.log(trayItems);
   const handleCheckClick = (item) => {
     // check if the item already exists in trayItems
@@ -75,28 +82,28 @@ export default function PageOne() {
     );
   };
 
-  const handleBill = () => {
-    const billTotal = handleTotal();
-    console.log(billTotal);
+  // const handleBill = () => {
+  //   const billTotal = handleTotal();
+  //   console.log(billTotal);
 
-    const currentDate = new Date().toISOString().slice(0, 10);
-    const currentTime = new Date().toLocaleTimeString();
+  //   const currentDate = new Date().toISOString().slice(0, 10);
+  //   const currentTime = new Date().toLocaleTimeString();
 
-    const data = {
-      billTotal: billTotal,
-      date: currentDate,
-      time: currentTime,
-    };
+  //   const data = {
+  //     billTotal: billTotal,
+  //     date: currentDate,
+  //     time: currentTime,
+  //   };
 
-    axios
-      .post("/billreport", data)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  //   axios
+  //     .post("/billreport", data)
+  //     .then((response) => {
+  //       console.log(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
 
   const decre = (idd) => {
     settrayItems(
@@ -140,23 +147,79 @@ export default function PageOne() {
         hour12: false,
       });
 
-      // const currentTime = new Date().toLocaleTimeString();
-
       const data = {
         billTotal: billTotal,
         date: currentDate,
         time: currentTime,
       };
 
+      // Get the tray items data and calculate the total amount
+      // const trayItems = trayItems;
+
+      // Render or print the bill HTML code as needed
+
+      console.log(trayItems);
+      // Generate bill HTML
+      // Generate bill HTML
+      let billHtml = `
+  <div style="font-family: Arial, sans-serif; font-size: 14px; width: 80%; margin: 0 auto;">
+    <div style="text-align: center;">
+      <img src="https://example.com/logo.png" alt="Restaurant Logo" style="height: 80px;">
+      <h2 style="text-align: center;">Restaurant Name</h2>
+      <p style="margin: 0;">Phone: 123-456-7890</p>
+      <p style="margin: 0;">Address: 123 Main St, Anytown, USA</p>
+      <p style="margin: 0;">GST Number: 123456789012345</p>
+      <hr style="border: 1px solid black; margin: 10px 0;">
+    </div>
+    <h3 style="text-align: center;">Bill Report</h3>
+`;
+      let totalAmount = 0;
+      trayItems.forEach((item) => {
+        const subtotal = item.qty * item.price;
+        totalAmount += subtotal;
+        const itemName =
+          item.item.length > 10
+            ? `${item.item.slice(0, 10)}<br>${item.item.slice(10)}`
+            : item.item;
+        billHtml += `
+    <p style="border-bottom: 1px solid black; padding: 5px 0;">
+      <span style="display: inline-block; width: 70%; word-break: break-word;" class="item-name">${itemName}</span>
+      <span style="display: inline-block; width: 15%; text-align: right;"> &#x20B9;${subtotal}</span>
+      <span style="display: inline-block; width: 15%; text-align: right;">${item.qty}</span>
+    </p>
+  `;
+      });
+      billHtml += `
+    <p style="text-align: right; margin-top: 10px;">Total: &#x20B9;${totalAmount}</p>
+    <div style="text-align: center;">
+      <p>Thank you for your visit! Please come again.</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Thanks%20for%20visiting%20us." alt="QR Code">
+    </div>
+  </div>
+`;
+
+      console.log(trayItems);
+      console.log(billHtml);
+
       axios
         .post("http://localhost:3001/billreport", data)
         .then((response) => {
-          console.log(response.data);
+          const billWindow = window.open(
+            "",
+            "Bill Report",
+            "width=800,height=600"
+          );
+          billWindow.document.body.innerHTML = billHtml;
+          billWindow.print();
+          // console.log(response.data);
+          // alert("Success! Your bill report has been submitted.");
+          window.location.reload();
         })
         .catch((error) => {
           console.log(error);
         });
     };
+
     return (
       <>
         <div>
@@ -252,13 +315,17 @@ export default function PageOne() {
           <Tabs>
             <Panel title="All">
               {/* <img src="images/back7.jpg" /> */}
-              <div className="margin-two font-24 Mulish-Bold black">Food</div>
+              <div className="margin-two font-24 Mulish-Bold black">
+                {selectedCategory}
+              </div>
 
               <div className="dispaly-flex box-cover ">
                 {items.map((item) => (
                   <div className="box" onClick={() => handleCheckClick(item)}>
                     <div className="Inner-box">
-                      <img src={item.imageUrl} />
+                      <img src={item.imageUrl} alt="Product Image" />
+
+                      {/* <img src={item.imageUrl} /> */}
                     </div>
                     <span style={styles.black}>{item.item}</span> <br />
                     <span style={styles.green}>${item.price}</span>
@@ -267,9 +334,10 @@ export default function PageOne() {
               </div>
             </Panel>
             <Panel title="Food"></Panel>
+            {/* <Panel title="Food"></Panel>
             <Panel title="Snanks"></Panel>
             <Panel title="Drinks"></Panel>
-            <Panel title="Package"></Panel>
+            <Panel title="Package"></Panel> */}
           </Tabs>
         </>
         <div className="cart-container">

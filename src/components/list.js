@@ -2,6 +2,9 @@ import Table from "react-bootstrap/Table";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 export default function List() {
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [updatedProduct, setUpdatedProduct] = useState(null);
@@ -16,10 +19,25 @@ export default function List() {
         console.error(error);
       });
   }, []);
+  // const handleEdit = (product) => {
+  //   setSelectedProduct(product);
+  //   setUpdatedProduct({ ...product });
+  // };
   const handleEdit = (product) => {
     setSelectedProduct(product);
     setUpdatedProduct({ ...product });
+    setSelectedCategory(product.category);
   };
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/foodtype/types")
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
   const handleDelete = (id) => {
     const config = {
@@ -55,29 +73,64 @@ export default function List() {
         "content-type": "application/json",
       },
     };
+    const updatedProductWithCategory = {
+      ...updatedProduct,
+      category: selectedCategory,
+    };
 
-    console.log("updatedProduct", updatedProduct); // Log the updatedProduct before sending to API
+    console.log("updatedProduct", updatedProductWithCategory);
     axios
       .patch(
         `http://localhost:3001/updateinventories/${selectedProduct.user_id}`,
-        updatedProduct,
+        updatedProductWithCategory,
         config
       )
       .then(() => {
         setProducts((prevProducts) =>
           prevProducts.map((product) =>
             product.user_id === selectedProduct.user_id
-              ? updatedProduct
+              ? updatedProductWithCategory
               : product
           )
         );
         setSelectedProduct(null);
         setUpdatedProduct(null);
+        setSelectedCategory("");
       })
       .catch((error) => {
         console.error(error);
       });
   };
+
+  // const handleUpdate = () => {
+  //   const config = {
+  //     headers: {
+  //       "content-type": "application/json",
+  //     },
+  //   };
+
+  //   console.log("updatedProduct", updatedProduct);
+  //   axios
+  //     .patch(
+  //       `http://localhost:3001/updateinventories/${selectedProduct.user_id}`,
+  //       updatedProduct,
+  //       config
+  //     )
+  //     .then(() => {
+  //       setProducts((prevProducts) =>
+  //         prevProducts.map((product) =>
+  //           product.user_id === selectedProduct.user_id
+  //             ? updatedProduct
+  //             : product
+  //         )
+  //       );
+  //       setSelectedProduct(null);
+  //       setUpdatedProduct(null);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // };
 
   return (
     <>
@@ -102,7 +155,7 @@ export default function List() {
                   }
                 />
               </label>
-              <label>
+              {/* <label>
                 Category:
                 <input
                   type="text"
@@ -114,6 +167,20 @@ export default function List() {
                     })
                   }
                 />
+              </label> */}
+              <label>
+                Category:
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
                 Price:

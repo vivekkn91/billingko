@@ -9,7 +9,7 @@ import List from "./custumer-list";
 import { ListGroup } from "react-bootstrap";
 
 import axios from "axios";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 function PageTwo() {
   const [id, setId] = useState("");
@@ -20,6 +20,14 @@ function PageTwo() {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/foodtype/types")
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleFileChange = (event) => {
     setFiles(event.target.files); // update the files state with the selected files
@@ -60,6 +68,7 @@ function PageTwo() {
       <div id="body-pd">
         <Header />
         <Sidebar />
+
         <h2 className="Mulish-Bold margin-top-30 ">Edit Product</h2>
         <form onSubmit={handleSubmit}>
           <div className="card2 mobile-card">
@@ -118,15 +127,11 @@ function PageTwo() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="Salads">Salads</option>
-                <option value="Soups">Soups</option>
-                <option value="Snacks">Snacks</option>
-                <option value="Desserts">Desserts</option>
-                <option value="Beverages">Beverages</option>
-                <option value="Breakfast">Breakfast</option>
-                <option value="Lunch">Lunch</option>
-                <option value="Dinner">Dinner</option>
-                <option value="Specials">Specials</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat}>
+                    {cat}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="display-block margin-top-5">
